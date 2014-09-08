@@ -1,8 +1,11 @@
-package com.github.fhuss.storm.hazelcast.bolt;
+package com.github.fhuss.storm.hazelcast.spout;
 
+import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
+import backtype.storm.topology.base.BaseRichSpout;
 import com.github.fhuss.storm.hazelcast.HazelcastProvider;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -14,39 +17,36 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Default {@link BaseRichBolt} for querying/listing on a specified distributed map.
+ * Default {@link backtype.storm.topology.base.BaseRichBolt} for querying/listing on a specified distributed map.
  *
  * @author Florian Hussonnois
  */
-public abstract class BaseDistributeMapBolt<K, V> extends BaseRichBolt implements EntryListener<K, V> {
+public abstract class BaseDistributeMapSpout<K, V> extends BaseRichSpout implements EntryListener<K, V> {
 
     private String name;
     private boolean includeValue;
     private HazelcastInstance hzInstance;
 
     /**
-     * Creates a new {@link BaseDistributeMapBolt} instance.
+     * Creates a new {@link com.github.fhuss.storm.hazelcast.spout.BaseDistributeMapSpout} instance.
      * @param name name of the distributed map.
      * @param includeValue
      */
-    public BaseDistributeMapBolt(String name, boolean includeValue) {
+    public BaseDistributeMapSpout(String name, boolean includeValue) {
         this.name = name;
         this.includeValue = includeValue;
     }
 
     @Override
-    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+    public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         HazelcastProvider provider = new HazelcastProvider(context.getThisWorkerPort());
         this.hzInstance = provider.getHzInstance();
         IMap<K, V> distributedMap = getDistributedMap();
         distributedMap.addEntryListener(this, includeValue);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void cleanup() {
+    public void close() {
         hzInstance.shutdown();
     }
 
