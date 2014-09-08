@@ -1,6 +1,7 @@
 package com.github.fhuss.storm.hazelcast;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
@@ -22,15 +23,29 @@ public class HazelcastProvider {
     private Config config;
 
     /**
+     * Creates a new {@link HazelcastProvider} instance
+     * that tries to find a usable XML configuration file.
+     */
+    public HazelcastProvider( ) {
+        this(getXmlConf().setInstanceName(HAZELCAST_INSTANCE));
+    }
+
+    /**
      * Creates a new {@link HazelcastProvider} instance.
      *
      * @param instanceName the hazelcast instance name.
      * @throws IllegalArgumentException if the instance name of the config is null or empty.
      */
     public HazelcastProvider(int instanceName) {
-        this(new Config(HAZELCAST_INSTANCE + "-" + instanceName));
+        this(getXmlConf().setInstanceName(HAZELCAST_INSTANCE + "-" + instanceName));
     }
 
+    /**
+     * Constructs a XmlConfigBuilder that tries to find a usable XML configuration file.
+     */
+    private static Config getXmlConf() {
+        return new XmlConfigBuilder().build();
+    }
     /**
      * Creates a new {@link HazelcastProvider} instance.
      *
